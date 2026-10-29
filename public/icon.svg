@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="gradBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#022c22" />
+      <stop offset="50%" stop-color="#064e3b" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#eab308" />
+      <stop offset="100%" stop-color="#ca8a04" />
+    </linearGradient>
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+  </defs>
+  <!-- Background Rounded Rect -->
+  <rect width="512" height="512" rx="128" fill="url(#gradBg)" />
+  <rect width="504" height="504" x="4" y="4" rx="124" fill="none" stroke="#10b981" stroke-width="4" stroke-opacity="0.3" />
+  
+  <!-- Outer Glow Ring -->
+  <circle cx="256" cy="256" r="180" fill="none" stroke="url(#goldGrad)" stroke-width="6" stroke-dasharray="16 12" opacity="0.4" />
+  
+  <!-- Trending Arrow Up / Chart -->
+  <path d="M140 330 L210 260 L280 300 L370 190" fill="none" stroke="url(#emeraldGrad)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M300 190 L370 190 L370 260" fill="none" stroke="url(#emeraldGrad)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" />
+  
+  <!-- Gold Ingot / Bullion Diamond -->
+  <polygon points="256,120 310,180 256,240 202,180" fill="url(#goldGrad)" opacity="0.9" />
+  
+  <!-- Text ASTAFED -->
+  <text x="256" y="410" text-anchor="middle" font-family="'Cairo', sans-serif, system-ui" font-weight="900" font-size="44" fill="#ffffff" letter-spacing="4">ASTAFED</text>
+  <text x="256" y="450" text-anchor="middle" font-family="'Cairo', sans-serif, system-ui" font-weight="700" font-size="22" fill="#10b981">استفيد</text>
+</svg>

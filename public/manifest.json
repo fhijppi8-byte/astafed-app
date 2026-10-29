@@ -1,0 +1,20 @@
+{
+  "short_name": "استفيد",
+  "name": "استفيد | ASTAFED - تداولك الذكي واستثمارك الآمن",
+  "description": "منصة التداول والاستثمار الذكي في الذهب والفوركس",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#030712",
+  "theme_color": "#030712",
+  "display": "standalone",
+  "orientation": "portrait",
+  "dir": "rtl",
+  "lang": "ar"
+}

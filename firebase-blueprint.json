@@ -1,0 +1,102 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and account balances in ASTAFED",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "username": { "type": "string", "maxLength": 64 },
+        "name": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "format": "email", "maxLength": 150 },
+        "password": { "type": "string", "maxLength": 128 },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "balance": { "type": "number" },
+        "profitWallet": { "type": "number" },
+        "packageId": { "type": "number" },
+        "referralCode": { "type": "string", "maxLength": 32 },
+        "referredBy": { "type": "string", "maxLength": 32 },
+        "telegramUsername": { "type": "string", "maxLength": 64 },
+        "withdrawalAddress": { "type": "string", "maxLength": 128 },
+        "isAddressLocked": { "type": "boolean" },
+        "joinedDate": { "type": "string", "maxLength": 32 },
+        "hasRevealedToday": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["active", "suspended", "restricted"] },
+        "isDeleted": { "type": "boolean" },
+        "deletedAt": { "type": "string" },
+        "notes": { "type": "string", "maxLength": 500 },
+        "totalBonuses": { "type": "number" },
+        "restrictionReason": { "type": "string", "maxLength": 300 }
+      },
+      "required": ["id", "username", "name", "role", "balance", "profitWallet", "packageId", "referralCode"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Deposit, withdrawal, or daily profit/loss operations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string", "maxLength": 100 },
+        "type": { "type": "string", "enum": ["deposit", "withdrawal", "daily_profit", "daily_loss"] },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected", "completed"] },
+        "date": { "type": "string", "maxLength": 32 },
+        "time": { "type": "string", "maxLength": 32 },
+        "method": { "type": "string", "enum": ["USDT_TRC20", "ZAIN_CASH", "JUST_MARKETS"] },
+        "proofImage": { "type": "string" },
+        "telegramUsername": { "type": "string", "maxLength": 64 },
+        "walletAddress": { "type": "string", "maxLength": 128 },
+        "note": { "type": "string", "maxLength": 500 },
+        "txHash": { "type": "string", "maxLength": 128 }
+      },
+      "required": ["id", "userId", "type", "amount", "status", "date"]
+    },
+    "DailyLog": {
+      "title": "DailyLog",
+      "description": "Daily market trading result and pooled percentage distribution",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "date": { "type": "string", "maxLength": 32 },
+        "marketSummary": { "type": "string", "maxLength": 500 },
+        "overallPoolResultDollar": { "type": "number" },
+        "growthPercentage": { "type": "number" },
+        "status": { "type": "string", "enum": ["published", "draft"] },
+        "timestamp": { "type": "string", "maxLength": 32 },
+        "adminNote": { "type": "string", "maxLength": 500 }
+      },
+      "required": ["id", "date", "overallPoolResultDollar", "growthPercentage", "status"]
+    },
+    "SystemSetting": {
+      "title": "SystemSetting",
+      "description": "Global settings for market schedule and operations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "marketScheduleMode": { "type": "string", "enum": ["auto", "manual"] },
+        "manualMarketOpen": { "type": "boolean" },
+        "holidayNotice": { "type": "string", "maxLength": 300 }
+      },
+      "required": ["id"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles, balances, and status in ASTAFED"
+    },
+    "/transactions/{transactionId}": {
+      "schema": { "$ref": "#/entities/Transaction" },
+      "description": "Financial deposit, withdrawal, and reward transactions"
+    },
+    "/dailyLogs/{logId}": {
+      "schema": { "$ref": "#/entities/DailyLog" },
+      "description": "Daily published trading sessions and PnL results"
+    },
+    "/systemSettings/{settingId}": {
+      "schema": { "$ref": "#/entities/SystemSetting" },
+      "description": "Market status and holiday controls"
+    }
+  }
+}

@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>استفيد | ASTAFED - تداولك الذكي واستثمارك الآمن</title>
+  <meta name="description" content="منصة استفيد للربط بين التحليل المالي الاحترافي وأسواق المال العالمية (الفوركس والذهب).">
+  <!-- Google Fonts: Cairo -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Cairo', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              emerald: '#10b981',
+              gold: '#f59e0b',
+              dark: '#030712',
+              card: '#0f172a',
+              cardLight: '#1e293b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- React & ReactDOM & Babel Standalone CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body {
+      background-color: #030712;
+      color: #f8fafc;
+      font-family: 'Cairo', sans-serif;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    input, textarea, select {
+      user-select: text;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #0b1329;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+  <div id="root"></div>
+
+  <!-- Main Application Script -->
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    // Company TRC20 Wallet
+    const COMPANY_TRC20 = "TLzS2yvg6xaKGrUZzPPR2XVvd5W3WRNu4m";
+
+    // Investment Tiers
+    const TIERS = [
+      { id: 1, name: "باقة البرونز", minAmount: 100, maxAmount: 199, dailyCap: 4, label: "باقة 100$", color: "from-amber-700 to-amber-900" },
+      { id: 2, name: "باقة الفضة", minAmount: 200, maxAmount: 299, dailyCap: 8, label: "باقة 200$", color: "from-slate-400 to-slate-600" },
+      { id: 3, name: "باقة الذهب", minAmount: 300, maxAmount: 499, dailyCap: 12, label: "باقة 300$", color: "from-yellow-500 to-amber-600" },
+      { id: 4, name: "باقة البلاتينيوم", minAmount: 500, maxAmount: 799, dailyCap: 20, label: "باقة 500$", color: "from-emerald-500 to-teal-700" },
+      { id: 5, name: "باقة الماس", minAmount: 800, maxAmount: 999, dailyCap: 30, label: "باقة 800$", color: "from-blue-500 to-indigo-700" },
+      { id: 6, name: "باقة كبار المستثمرين VIP", minAmount: 1000, maxAmount: 99999, dailyCap: 50, label: "باقة 1000$", color: "from-purple-600 to-amber-500" }
+    ];
+
+    // Initial Database
+    const INITIAL_USERS = [
+      {
+        id: "admin-master",
+        username: "vitamin11",
+        email: "vitamin11@astafed.com",
+        password: "200336i",
+        name: "إدارة منصة استفيد",
+        role: "admin",
+        balance: 15400,
+        profitWallet: 2450,
+        packageId: 6,
+        referralCode: "ASTA9999",
+        joinedDate: "2026-01-01",
+        status: "active",
+        isDeleted: false,
+        totalBonuses: 0,
+        withdrawalAddress: COMPANY_TRC20,
+        isAddressLocked: true,
+        hasRevealedToday: false,
+        referredUsers: []
+      }
+    ];
+
+    // Standalone App Component
+    function AstafedStandaloneApp() {
+      // LocalStorage Sync
+      const [users, setUsers] = useState(() => {
+        try {
+          const s = localStorage.getItem("astafed_st_users");
+          if (s) {
+            const parsed = JSON.parse(s);
+            if (!parsed.some(u => u.username === "vitamin11")) {
+              return [...parsed, INITIAL_USERS[0]];
+            }
+            return parsed;
+          }
+        } catch(e){}
+        return INITIAL_USERS;
+      });
+
+      const [transactions, setTransactions] = useState(() => {
+        try {
+          const s = localStorage.getItem("astafed_st_tx");
+          if (s) return JSON.parse(s);
+        } catch(e){}
+        return [
+          {
+            id: "ORD-101",
+            userId: "admin-master",
+            userName: "إدارة المنصة",
+            type: "deposit",
+            amount: 500,
+            status: "approved",
+            date: "2026-10-28",
+            time: "14:30",
+            method: "USDT_TRC20",
+            walletAddress: COMPANY_TRC20,
+            note: "إيداع تمويلي أولي للحساب التجميعي"
+          }
+        ];
+      });
+
+      const [currentUser, setCurrentUser] = useState(() => {
+        try {
+          const s = localStorage.getItem("astafed_st_session");
+          if (s) return JSON.parse(s);
+        } catch(e){}
+        return null;
+      });
+
+      const [activeTab, setActiveTab] = useState("dashboard");
+      const [adminTab, setAdminTab] = useState("stats");
+      const [showAuthModal, setShowAuthModal] = useState(false);
+      const [authMode, setAuthMode] = useState("login");
+      const [referralParam, setReferralParam] = useState("");
+
+      // Daily Market State
+      const [dailyGrowth, setDailyGrowth] = useState(3.5);
+      const [marketOpen, setMarketOpen] = useState(true);
+      const [marketNotice, setMarketNotice] = useState("جلسة تداول الفوركس والذهب نشطة ومباشرة");
+
+      // Form States
+      const [loginId, setLoginId] = useState("");
+      const [loginPass, setLoginPass] = useState("");
+      const [regName, setRegName] = useState("");
+      const [regUsername, setRegUsername] = useState("");
+      const [regEmail, setRegEmail] = useState("");
+      const [regPass, setRegPass] = useState("");
+      const [regTel, setRegTel] = useState("");
+      const [regRef, setRegRef] = useState("");
+      const [authError, setAuthError] = useState("");
+
+      // Deposit State
+      const [depAmount, setDepAmount] = useState(100);
+      const [depMethod, setDepMethod] = useState("USDT_TRC20");
+      const [depTelegram, setDepTelegram] = useState("");
+      const [depSuccessMsg, setDepSuccessMsg] = useState("");
+
+      // Withdraw State
+      const [wthAmount, setWthAmount] = useState(20);
+      const [wthWallet, setWthWallet] = useState("");
+      const [wthMsg, setWthMsg] = useState({ error: "", success: "" });
+
+      // Daily PnL Admin State
+      const [adminDollarPnL, setAdminDollarPnL] = useState(120);
+      const [adminPnLSummary, setAdminPnLSummary] = useState("صفقات شراء الذهب XAUUSD حققت 220 نقطة ربح مع ارتداد إيجابي على زوج اليورو دولار EURUSD");
+
+      // Save to localStorage
+      useEffect(() => {
+        localStorage.setItem("astafed_st_users", JSON.stringify(users));
+      }, [users]);
+
+      useEffect(() => {
+        localStorage.setItem("astafed_st_tx", JSON.stringify(transactions));
+      }, [transactions]);
+
+      useEffect(() => {
+        if (currentUser) {
+          localStorage.setItem("astafed_st_session", JSON.stringify(currentUser));
+          const fresh = users.find(u => u.id === currentUser.id);
+          if (fresh && JSON.stringify(fresh) !== JSON.stringify(currentUser)) {
+            setCurrentUser(fresh);
+          }
+        } else {
+          localStorage.removeItem("astafed_st_session");
+        }
+      }, [currentUser, users]);
+
+      // Detect referral code in URL
+      useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const ref = urlParams.get("ref");
+        if (ref) {
+          setReferralParam(ref);
+          setRegRef(ref.toUpperCase());
+          if (!currentUser) {
+            setAuthMode("register");
+            setShowAuthModal(true);
+          }
+        }
+      }, []);
+
+      // Statistics Calculation
+      const stats = useMemo(() => {
+        const nonDeleted = users.filter(u => u.role === "user" && !u.isDeleted);
+        const activeDepositors = nonDeleted.filter(u => u.balance > 0);
+        const nonDepositors = nonDeleted.filter(u => u.balance === 0);
+        const suspended = nonDeleted.filter(u => u.status === "suspended");
+        const trash = users.filter(u => u.isDeleted);
+
+        const totalBalances = nonDeleted.reduce((s, u) => s + (u.balance || 0), 0);
+        const totalProfitWallets = nonDeleted.reduce((s, u) => s + (u.profitWallet || 0), 0);
+        
+        const realDeposits = transactions.filter(t => t.type === "deposit" && t.status === "approved");
+        const pendingDeposits = transactions.filter(t => t.type === "deposit" && t.status === "pending");
+        const completedWth = transactions.filter(t => t.type === "withdrawal" && t.status === "completed");
+        const pendingWth = transactions.filter(t => t.type === "withdrawal" && t.status === "pending");
+        const distributedProfits = transactions.filter(t => t.type === "daily_profit" && t.status === "completed");
+
+        return {
+          totalBalances,
+          totalProfitWallets,
+          activeDepositorsCount: activeDepositors.length,
+          nonDepositorsCount: nonDepositors.length,
+          suspendedCount: suspended.length,
+          trashCount: trash.length,
+          realDepositsTotal: realDeposits.reduce((s, t) => s + t.amount, 0),
+          realDepositsCount: realDeposits.length,
+          pendingDepositsTotal: pendingDeposits.reduce((s, t) => s + t.amount, 0),
+          pendingDepositsCount: pendingDeposits.length,
+          completedWthTotal: completedWth.reduce((s, t) => s + t.amount, 0),
+          completedWthCount: completedWth.length,
+          pendingWthTotal: pendingWth.reduce((s, t) => s + t.amount, 0),
+          pendingWthCount: pendingWth.length,
+          totalProfits: distributedProfits.reduce((s, t) => s + t.amount, 0),
+          totalUsers: nonDeleted.length
+        };
+      }, [users, transactions]);
+
+      // Authentication Actions
+      const handleLogin = (e) => {
+        e.preventDefault();
+        setAuthError("");
+        const tid = loginId.trim().toLowerCase();
+        const tpass = loginPass.trim();
+
+        if (tid === "vitamin11" || tid === "admin") {
+          if (tpass === "200336i") {
+            const admin = users.find(u => u.username === "vitamin11") || INITIAL_USERS[0];
+            setCurrentUser(admin);
+            setActiveTab("admin");
+            setShowAuthModal(false);
+            return;
+          }
+        }
+
+        const found = users.find(u => 
+          !u.isDeleted && 
+          (u.username.toLowerCase() === tid || u.email.toLowerCase() === tid) && 
+          u.password === tpass
+        );
+
+        if (found) {
+          if (found.status === "suspended") {
+            setAuthError("تم حظر هذا الحساب من قبل الإدارة");
+            return;
+          }
+          setCurrentUser(found);
+          setActiveTab(found.role === "admin" ? "admin" : "dashboard");
+          setShowAuthModal(false);
+        } else {
+          setAuthError("اسم المستخدم أو كلمة المرور غير صحيحة");
+        }
+      };
+
+      const handleRegister = (e) => {
+        e.preventDefault();
+        setAuthError("");
+        const uLower = regUsername.trim().toLowerCase();
+        const eLower = regEmail.trim().toLowerCase();
+
+        if (users.some(u => !u.isDeleted && u.username.toLowerCase() === uLower)) {
+          setAuthError("اسم المستخدم مسجل مسبقاً، اختر اسماً آخر");
+          return;
+        }
+
+        const refCode = "ASTA" + Math.floor(1000 + Math.random() * 9000);
+        const newUser = {
+          id: "usr-" + Date.now(),
+          name: regName.trim(),
+          username: uLower,
+          email: eLower,
+          password: regPass,
+          role: "user",
+          balance: 0,
+          profitWallet: 0,
+          packageId: 1,
+          referralCode: refCode,
+          referredBy: regRef ? regRef.trim().toUpperCase() : undefined,
+          telegramUsername: regTel.trim(),
+          joinedDate: new Date().toISOString().split("T")[0],
+          status: "active",
+          isDeleted: false,
+          totalBonuses: 0,
+          hasRevealedToday: false,
+          withdrawalAddress: "",
+          isAddressLocked: false,
+          referredUsers: []
+        };
+
+        let updated = [...users, newUser];
+        if (regRef) {
+          const codeUpper = regRef.trim().toUpperCase();
+          updated = updated.map(u => {
+            if (u.referralCode === codeUpper) {
+              const refs = u.referredUsers ? [...u.referredUsers] : [];
+              refs.push({ id: newUser.id, name: newUser.name, username: newUser.username, capital: 0 });
+              return { ...u, referredUsers: refs };
+            }
+            return u;
+          });
+        }
+
+        setUsers(updated);
+        setCurrentUser(newUser);
+        setActiveTab("dashboard");
+        setShowAuthModal(false);
+      };
+
+      const handleLogout = () => {
+        setCurrentUser(null);
+        setActiveTab("dashboard");
+      };
+
+      // Investor Reveal Daily Profit
+      const handleRevealProfit = () => {
+        if (!currentUser) return;
+        if (!marketOpen) {
+          alert("السوق في حالة عطلة حالياً: " + marketNotice);
+          return;
+        }
+        if (currentUser.balance <= 0) {
+          alert("رصيدك الحالي 0$. يرجى إيداع باقة لبدء جني الأرباح اليومية");
+          return;
+        }
+        if (currentUser.hasRevealedToday) {
+          alert("لقد كشفت أرباح اليوم مسبقاً! انتظر اعتماد صفقات جلسة الغد");
+          return;
+        }
+
+        const curTier = TIERS.find(t => t.id === currentUser.packageId) || TIERS[0];
+        const rawProfit = currentUser.balance * (dailyGrowth / 100);
+        const profit = Math.min(rawProfit, curTier.dailyCap);
+        const rounded = Math.round(profit * 100) / 100;
+
+        const updatedUser = {
+          ...currentUser,
+          profitWallet: Math.round((currentUser.profitWallet + rounded) * 100) / 100,
+          hasRevealedToday: true
+        };
+
+        const tx = {
+          id: "PRF-" + Math.floor(10000 + Math.random() * 90000),
+          userId: currentUser.id,
+          userName: currentUser.name,
+          type: "daily_profit",
+          amount: rounded,
+          status: "completed",
+          date: new Date().toISOString().split("T")[0],
+          time: "12:00",
+          method: "USDT_TRC20",
+          note: `أرباح تداول جلسة اليوم بنسبة +${dailyGrowth}% (سقف الباقة $${curTier.dailyCap})`
+        };
+
+        setUsers(prev => prev.map(u => u.id === currentUser.id ? updatedUser : u));
+        setTransactions(prev => [tx, ...prev]);
+        setCurrentUser(updatedUser);
+
+        try {
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#10b981', '#34d399', '#fbbf24', '#f59e0b']
+          });
+        } catch(e){}
+
+        alert(`مبارك! حققت اليوم أرباح بقيمة $${rounded.toFixed(2)} تم إضافتها لمحفظة أرباحك القابلة للسحب`);
+      };
+
+      // Handle Deposit Submission
+      const handleDepositSubmit = (e) => {
+        e.preventDefault();
+        if (!currentUser) return;
+
+        const orderId = "ORD-" + Math.floor(10000 + Math.random() * 90000);
+        const newTx = {
+          id: orderId,
+          userId: currentUser.id,
+          userName: currentUser.name,
+          type: "deposit",
+          amount: Number(depAmount),
+          status: "pending",
+          date: new Date().toISOString().split("T")[0],
+          time: new Date().toTimeString().split(" ")[0].substring(0, 5),
+          method: depMethod,
+          walletAddress: COMPANY_TRC20,
+          telegramUsername: depTelegram || currentUser.telegramUsername,
+          note: `طلب إيداع باقة $${depAmount} قيد مراجعة وتأكيد الإدارة`
+        };
+
+        setTransactions(prev => [newTx, ...prev]);
+        setDepSuccessMsg(`تم تقديم طلب الإيداع بنجاح برقم: ${orderId}. سيتم تدقيقه وتفعيل رصيدك خلال دقائق من قبل الإدارة`);
+      };
+
+      // Handle Withdrawal Submission
+      const handleWithdrawSubmit = (e) => {
+        e.preventDefault();
+        setWthMsg({ error: "", success: "" });
+
+        if (!currentUser) return;
+        const amt = Number(wthAmount);
+        if (amt < 10) {
+          setWthMsg({ error: "الحد الأدنى للسحب هو 10 دولارات", success: "" });
+          return;
+        }
+        if (amt > currentUser.profitWallet) {
+          setWthMsg({ error: `الرصيد المتاح للسحب هو $${currentUser.profitWallet.toFixed(2)} فقط`, success: "" });
+          return;
+        }
+
+        const wallet = wthWallet.trim() || currentUser.withdrawalAddress;
+        if (!wallet || !wallet.startsWith("T") || wallet.length < 26) {
+          setWthMsg({ error: "يرجى إدخال عنوان محفظة TRC-20 صحيح يبدأ بحرف T", success: "" });
+          return;
+        }
+
+        const orderId = "WTH-" + Math.floor(10000 + Math.random() * 90000);
+        const newTx = {
+          id: orderId,
+          userId: currentUser.id,
+          userName: currentUser.name,
+          type: "withdrawal",
+          amount: amt,
+          status: "pending",
+          date: new Date().toISOString().split("T")[0],
+          time: new Date().toTimeString().split(" ")[0].substring(0, 5),
+          method: "USDT_TRC20",
+          walletAddress: wallet,
+          telegramUsername: currentUser.telegramUsername,
+          note: `طلب سحب أرباح بقيمة $${amt} قيد المعالجة`
+        };
+
+        const updatedUser = {
+          ...currentUser,
+          profitWallet: Math.max(0, currentUser.profitWallet - amt),
+          withdrawalAddress: wallet,
+          isAddressLocked: true
+        };
+
+        setUsers(prev => prev.map(u => u.id === currentUser.id ? updatedUser : u));
+        setTransactions(prev => [newTx, ...prev]);
+        setCurrentUser(updatedUser);
+        setWthMsg({ error: "", success: `تم تسجيل طلب السحب بنجاح برقم: ${orderId}. سيتم إرسال العملات لمحفظتك فوراً` });
+      };
+
+      // Admin Actions
+      const approveDeposit = (txId) => {
+        const tx = transactions.find(t => t.id === txId);
+        if (!tx) return;
+
+        setUsers(prev => prev.map(u => {
+          if (u.id === tx.userId) {
+            const newBal = u.balance + tx.amount;
+            let matchedTier = 1;
+            for (let i = TIERS.length - 1; i >= 0; i--) {
+              if (newBal >= TIERS[i].minAmount) {
+                matchedTier = TIERS[i].id;
+                break;
+              }
+            }
+            return { ...u, balance: newBal, packageId: matchedTier };
+          }
+          return u;
+        }));
+
+        setTransactions(prev => prev.map(t => t.id === txId ? { ...t, status: "approved" } : t));
+        alert("تمت الموافقة على الإيداع وإضافة الرصيد للعميل بنجاح!");
+      };
+
+      const rejectDeposit = (txId) => {
+        setTransactions(prev => prev.map(t => t.id === txId ? { ...t, status: "rejected", note: "تم الرفض لعدم مطابقة التحويل" } : t));
+      };
+
+      const approveWithdrawal = (txId) => {
+        const hash = "0x" + Math.random().toString(16).substring(2, 34);
+        setTransactions(prev => prev.map(t => t.id === txId ? { ...t, status: "completed", txHash: hash } : t));
+        alert("تم اعتماد السحب وتأكيده بنجاح!");
+      };
+
+      const rejectWithdrawal = (txId) => {
+        const tx = transactions.find(t => t.id === txId);
+        if (!tx) return;
+        setUsers(prev => prev.map(u => u.id === tx.userId ? { ...u, profitWallet: u.profitWallet + tx.amount } : u));
+        setTransactions(prev => prev.map(t => t.id === txId ? { ...t, status: "rejected", note: "تم الرفض وإعادة الرصيد لصندوق أرباح العميل" } : t));
+      };
+
+      const handlePublishPnL = (e) => {
+        e.preventDefault();
+        const totalCap = stats.totalBalances;
+        const growth = totalCap > 0 ? Math.round((adminDollarPnL / totalCap) * 1000) / 10 : 3.5;
+        setDailyGrowth(growth);
+
+        // Reset reveal status for all users
+        setUsers(prev => prev.map(u => ({ ...u, hasRevealedToday: false })));
+        alert(`تم اعتماد ونشر نتيجة صفقات اليوم بنسبة نمو +${growth}% لجميع المستثمرين!`);
+      };
+
+      const toggleBanUser = (uid) => {
+        setUsers(prev => prev.map(u => {
+          if (u.id === uid) {
+            const nextStatus = u.status === "suspended" ? "active" : "suspended";
+            return { ...u, status: nextStatus };
+          }
+          return u;
+        }));
+      };
+
+      const sendBonus = (uid) => {
+        const amtStr = prompt("أدخل قيمة المكافأة بالدولار ($):", "25");
+        if (!amtStr) return;
+        const amt = parseFloat(amtStr);
+        if (isNaN(amt) || amt <= 0) return;
+
+        setUsers(prev => prev.map(u => {
+          if (u.id === uid) {
+            return { ...u, profitWallet: u.profitWallet + amt, totalBonuses: (u.totalBonuses || 0) + amt };
+          }
+          return u;
+        }));
+
+        const tx = {
+          id: "BON-" + Math.floor(10000 + Math.random() * 90000),
+          userId: uid,
+          userName: "مستثمر",
+          type: "daily_profit",
+          amount: amt,
+          status: "completed",
+          date: new Date().toISOString().split("T")[0],
+          time: "12:00",
+          method: "USDT_TRC20",
+          note: "مكافأة إدارية تشجيعية خاصة"
+        };
+        setTransactions(prev => [tx, ...prev]);
+        alert(`تم إرسال مكافأة بقيمة $${amt} إلى محفظة أرباح المستثمر بنجاح!`);
+      };
+
+      const moveToTrash = (uid) => {
+        if (!confirm("هل أنت متأكد من نقل هذا المستخدم لسلة المحذوفات؟")) return;
+        setUsers(prev => prev.map(u => u.id === uid ? { ...u, isDeleted: true } : u));
+      };
+
+      const restoreFromTrash = (uid) => {
+        setUsers(prev => prev.map(u => u.id === uid ? { ...u, isDeleted: false } : u));
+      };
+
+      const userTier = useMemo(() => {
+        if (!currentUser) return TIERS[0];
+        return TIERS.find(t => t.id === currentUser.packageId) || TIERS[0];
+      }, [currentUser]);
+
+      return (
+        <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-emerald-500 selection:text-white">
+          {/* Top Bar Header */}
+          <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
+            <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+              {/* Logo */}
+              <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab(currentUser?.role === 'admin' ? 'admin' : 'dashboard')}>
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-amber-500 flex items-center justify-center font-black text-xl shadow-lg shadow-emerald-900/40">
+                  أ
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-black text-xl tracking-wider bg-gradient-to-r from-emerald-400 to-amber-400 bg-clip-text text-transparent">
+                      استفيد | ASTAFED
+                    </span>
+                    {currentUser?.role === 'admin' && (
+                      <span className="bg-amber-500/20 text-amber-400 text-xs px-2 py-0.5 rounded-full font-bold border border-amber-500/30">
+                        الإدارة
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-400 font-medium">تداولك الذكي.. واستثمارك الآمن</p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-3">
+                {currentUser ? (
+                  <div className="flex items-center gap-3">
+                    <div className="hidden sm:block text-left">
+                      <p className="text-sm font-bold text-slate-200">{currentUser.name}</p>
+                      <p className="text-xs text-emerald-400 font-mono">
+                        ${currentUser.balance.toFixed(2)} | أرباح: ${currentUser.profitWallet.toFixed(2)}
+                      </p>
+                    </div>
+                    {currentUser.role === 'admin' ? (
+                      <button
+                        onClick={() => setActiveTab('admin')}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-bold border ${activeTab === 'admin' ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-slate-800 text-amber-400 border-amber-500/30'}`}
+                      >
+                        لوحة الإدارة
+                      </button>
+                    ) : null}
+                    <button
+                      onClick={handleLogout}
+                      className="px-3 py-1.5 rounded-lg text-sm bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500 hover:text-white transition"
+                    >
+                      خروج
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => { setAuthMode("login"); setShowAuthModal(true); }}
+                      className="px-4 py-2 rounded-xl text-sm font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 transition"
+                    >
+                      تسجيل الدخول
+                    </button>
+                    <button
+                      onClick={() => { setAuthMode("register"); setShowAuthModal(true); }}
+                      className="px-4 py-2 rounded-xl text-sm font-bold bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 shadow-lg shadow-emerald-900/30 transition"
+                    >
+                      حساب جديد
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </header>
+
+          {/* Navigation Tabs (For Logged In Users) */}
+          {currentUser && currentUser.role === 'user' && (
+            <div className="bg-slate-900 border-b border-slate-800">
+              <div className="max-w-7xl mx-auto px-4 flex overflow-x-auto gap-2 py-2">
+                {[
+                  { id: "dashboard", label: "الرئيسية والمحفظة" },
+                  { id: "deposit", label: "شحن باقة وتفعيل" },
+                  { id: "withdraw", label: "سحب الأرباح" },
+                  { id: "referral", label: "فريق الإحالة والأرباح" },
+                  { id: "profile", label: "الملف والمحفظة" }
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition ${activeTab === tab.id ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-900/40' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Main Content Area */}
+          <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
+            {/* If NOT logged in, show Hero Welcome & Registration Prompt */}
+            {!currentUser && (
+              <div className="space-y-8 py-6">
+                <div className="relative rounded-3xl overflow-hidden p-8 sm:p-12 bg-gradient-to-br from-slate-900 via-emerald-950/40 to-slate-900 border border-emerald-500/20 text-center">
+                  <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs px-3 py-1.5 rounded-full font-bold mb-4">
+                    <span>✨</span> منصة الاستثمار والتحليل المالي الأولى
+                  </div>
+                  <h1 className="text-3xl sm:text-5xl font-black text-white leading-tight mb-4">
+                    تداولك الذكي.. واستثمارك الآمن في الذهب والفوركس
+                  </h1>
+                  <p className="max-w-2xl mx-auto text-slate-300 text-sm sm:text-base leading-relaxed mb-8">
+                    مرحباً بك في منصة استفيد! نوفر لك بيئة استثمارية شفافة، حساب تجميعي موحد يدار باحترافية، متابعة يومية للصفقات، وسحب أرباح فوري عبر USDT TRC-20 وزين كاش.
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-4">
+                    <button
+                      onClick={() => { setAuthMode("register"); setShowAuthModal(true); }}
+                      className="px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-lg shadow-xl shadow-emerald-900/40 transition"
+                    >
+                      ابدأ استثمارك الآن
+                    </button>
+                    <button
+                      onClick={() => { setAuthMode("login"); setShowAuthModal(true); }}
+                      className="px-8 py-4 rounded-2xl bg-slate-800/80 hover:bg-slate-800 text-white font-bold text-lg border border-slate-700 transition"
+                    >
+                      تسجيل الدخول
+                    </button>
+                  </div>
+                </div>
+
+                {/* Investment Tiers Grid */}
+                <div>
+                  <div className="text-center mb-6">
+                    <h2 className="text-2xl font-black text-white">باقات الاستثمار المعتمدة</h2>
+                    <p className="text-slate-400 text-sm">حدد باقتك وابدأ بجني الأرباح اليومية وفق سقف الربح المعتمد</p>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {TIERS.map(tier => (
+                      <div key={tier.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 hover:border-emerald-500/50 transition">
+                        <div className="flex justify-between items-center mb-4">
+                          <span className="font-black text-lg text-emerald-400">{tier.name}</span>
+                          <span className="text-xs bg-emerald-500/10 text-emerald-300 px-2.5 py-1 rounded-full font-bold">
+                            {tier.label}
+                          </span>
+                        </div>
+                        <div className="space-y-2 mb-6">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-slate-400">الحد الأدنى للإيداع:</span>
+                            <span className="font-bold text-white font-mono">${tier.minAmount}</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-slate-400">سقف الربح اليومي:</span>
+                            <span className="font-bold text-amber-400 font-mono">حتى ${tier.dailyCap} يومياً</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-slate-400">أيام التوزيع:</span>
+                            <span className="text-slate-300">الاثنين - الجمعة</span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => { setAuthMode("register"); setShowAuthModal(true); }}
+                          className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-emerald-600 hover:text-slate-950 text-slate-200 font-bold text-sm transition"
+                        >
+                          تفعيل هذه الباقة
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* LOGGED IN INVESTOR DASHBOARD */}
+            {currentUser && currentUser.role === 'user' && activeTab === 'dashboard' && (
+              <div className="space-y-6">
+                {/* Balance Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6">
+                    <p className="text-sm font-bold text-slate-400 mb-1">رأس المال النشط (الباقة)</p>
+                    <p className="text-3xl font-black font-mono text-white mb-2">${currentUser.balance.toFixed(2)}</p>
+                    <div className="inline-flex items-center gap-1.5 text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-lg">
+                      <span>الباقة:</span>
+                      <span className="font-bold text-emerald-400">{userTier.name} (سقف ${userTier.dailyCap})</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-emerald-950/40 via-slate-900 to-slate-950 border border-emerald-500/30 rounded-3xl p-6">
+                    <p className="text-sm font-bold text-emerald-400 mb-1">صندوق الأرباح (جاهز للسحب)</p>
+                    <p className="text-3xl font-black font-mono text-emerald-400 mb-2">${currentUser.profitWallet.toFixed(2)}</p>
+                    <button
+                      onClick={() => setActiveTab('withdraw')}
+                      className="text-xs bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-3 py-1 rounded-lg transition"
+                    >
+                      طلب سحب فوري
+                    </button>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-amber-950/30 via-slate-900 to-slate-950 border border-amber-500/30 rounded-3xl p-6">
+                    <p className="text-sm font-bold text-amber-400 mb-1">جلسة اليوم ومعدل النمو</p>
+                    <p className="text-3xl font-black font-mono text-amber-400 mb-2">+{dailyGrowth}%</p>
+                    <p className="text-xs text-slate-400">{marketNotice}</p>
+                  </div>
+                </div>
+
+                {/* Daily Result Reveal Card */}
+                <div className="bg-gradient-to-r from-slate-900 via-emerald-950/50 to-slate-900 border border-emerald-500/30 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+                  <div>
+                    <div className="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-400 text-xs px-3 py-1 rounded-full font-bold mb-2">
+                      <span>📈</span> جلسة صفقات الذهب والفوركس لليوم
+                    </div>
+                    <h3 className="text-xl sm:text-2xl font-black text-white mb-2">
+                      {currentUser.hasRevealedToday ? "تم احتساب وتوزيع أرباح اليوم في محفظتك" : "اكشف أرباح تداول اليوم الآن"}
+                    </h3>
+                    <p className="text-sm text-slate-300 max-w-xl">
+                      {currentUser.hasRevealedToday 
+                        ? "لقد قمت بكشف أرباحك مسبقاً لهذا اليوم. ستتجدد النتائج مع جلسة الغد."
+                        : `بناءً على نتائج الحساب التجميعي وسقف باقتك ($${userTier.dailyCap})، اضغط الزر لمعرفة وإيداع نصيبك من أرباح اليوم.`}
+                    </p>
+                  </div>
+                  <div>
+                    <button
+                      onClick={handleRevealProfit}
+                      disabled={currentUser.hasRevealedToday}
+                      className={`px-8 py-4 rounded-2xl font-black text-base shadow-lg transition ${currentUser.hasRevealedToday ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 shadow-emerald-900/50'}`}
+                    >
+                      {currentUser.hasRevealedToday ? "✓ تم كشف أرباح اليوم" : "🎁 كشف وتأكيد أرباح اليوم"}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Recent Transactions List */}
+                <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6">
+                  <h3 className="text-lg font-black text-white mb-4">سجل العمليات الأخير</h3>
+                  <div className="space-y-3">
+                    {transactions.filter(t => t.userId === currentUser.id).slice(0, 5).map(tx => (
+                      <div key={tx.id} className="flex justify-between items-center p-3 rounded-xl bg-slate-950/60 border border-slate-800">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs px-2 py-0.5 rounded font-bold ${tx.type === 'deposit' ? 'bg-blue-500/20 text-blue-400' : tx.type === 'withdrawal' ? 'bg-purple-500/20 text-purple-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
+                              {tx.type === 'deposit' ? 'إيداع' : tx.type === 'withdrawal' ? 'سحب' : 'أرباح تداول'}
+                            </span>
+                            <span className="text-sm font-bold text-white font-mono">${tx.amount.toFixed(2)}</span>
+                          </div>
+                          <p className="text-xs text-slate-400 mt-1">{tx.note}</p>
+                        </div>
+                        <div className="text-left">
+                          <span className={`text-xs px-2.5 py-1 rounded-full font-bold ${tx.status === 'completed' || tx.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' : tx.status === 'pending' ? 'bg-amber-500/20 text-amber-400' : 'bg-rose-500/20 text-rose-400'}`}>
+                            {tx.status === 'completed' || tx.status === 'approved' ? 'مكتمل' : tx.status === 'pending' ? 'قيد المراجعة' : 'مرفوض'}
+                          </span>
+                          <p className="text-xs text-slate-500 mt-1 font-mono">{tx.date}</p>
+                        </div>
+                      </div>
+                    ))}
+                    {transactions.filter(t => t.userId === currentUser.id).length === 0 && (
+                      <p className="text-center text-slate-500 py-6 text-sm">لا توجد عمليات سابقة بعد</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* DEPOSIT TAB */}
+            {currentUser && currentUser.role === 'user' && activeTab === 'deposit' && (
+              <div className="max-w-2xl mx-auto bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8">
+                <h2 className="text-2xl font-black text-white mb-2">إيداع وشحن باقة استثمارية</h2>
+                <p className="text-slate-400 text-sm mb-6">حوّل المبلغ المطلوب للمحفظة الرسمية للمنصة، ثم أرسل الطلب للتفعيل الفوري.</p>
+
+                {depSuccessMsg && (
+                  <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm mb-6 font-bold">
+                    {depSuccessMsg}
+                  </div>
+                )}
+
+                {/* Company Wallet Address */}
+                <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 mb-6">
+                  <span className="text-xs font-bold text-slate-400 block mb-1">عنوان محفظة USDT (شبكة TRC-20 الرسمية):</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-amber-400 text-xs sm:text-sm font-bold break-all select-all">
+                      {COMPANY_TRC20}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => { navigator.clipboard.writeText(COMPANY_TRC20); alert("تم نسخ عنوان المحفظة!"); }}
+                      className="text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg shrink-0 font-bold"
+                    >
+                      نسخ
+                    </button>
+                  </div>
+                </div>
+
+                <form onSubmit={handleDepositSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-300 mb-2">اختر الباقة / المبلغ المراد إيداعه ($):</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[100, 200, 300, 500, 800, 1000].map(val => (
+                        <button
+                          type="button"
+                          key={val}
+                          onClick={() => setDepAmount(val)}
+                          className={`py-3 rounded-xl font-bold font-mono text-sm border transition ${depAmount === val ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-md shadow-emerald-900/30' : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700'}`}
+                        >
+                          ${val}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-slate-300 mb-1">طريقة التحويل:</label>
+                    <select
+                      value={depMethod}
+                      onChange={(e) => setDepMethod(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm"
+                    >
+                      <option value="USDT_TRC20">USDT (شبكة TRC-20) - الموصى بها</option>
+                      <option value="ZAIN_CASH">زين كاش (العراق)</option>
+                      <option value="JUST_MARKETS">وكالة JustMarkets</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-slate-300 mb-1">معرف تليجرام للتواصل والتأكيد:</label>
+                    <input
+                      type="text"
+                      value={depTelegram}
+                      onChange={(e) => setDepTelegram(e.target.value)}
+                      placeholder="@username"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-base shadow-lg shadow-emerald-900/40 transition"
+                  >
+                    تأكيد وإرسال طلب الإيداع
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* WITHDRAW TAB */}
+            {currentUser && currentUser.role === 'user' && activeTab === 'withdraw' && (
+              <div className="max-w-2xl mx-auto bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8">
+                <h2 className="text-2xl font-black text-white mb-2">سحب الأرباح</h2>
+                <p className="text-slate-400 text-sm mb-6">سحب مباشر إلى محفظتك USDT TRC-20. الحد الأدنى للسحب 10 دولارات.</p>
+
+                {wthMsg.error && (
+                  <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-sm mb-6 font-bold">
+                    {wthMsg.error}
+                  </div>
+                )}
+                {wthMsg.success && (
+                  <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm mb-6 font-bold">
+                    {wthMsg.success}
+                  </div>
+                )}
+
+                <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 mb-6 flex justify-between items-center">
+                  <div>
+                    <span className="text-xs text-slate-400 font-bold block">رصيد الأرباح المتاح للسحب:</span>
+                    <span className="text-2xl font-black font-mono text-emerald-400">${currentUser.profitWallet.toFixed(2)}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setWthAmount(Math.floor(currentUser.profitWallet))}
+                    className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg font-bold"
+                  >
+                    سحب الكل
+                  </button>
+                </div>
+
+                <form onSubmit={handleWithdrawSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-300 mb-1">المبلغ المطلوب سحبه ($):</label>
+                    <input
+                      type="number"
+                      min="10"
+                      step="1"
+                      value={wthAmount}
+                      onChange={(e) => setWthAmount(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white font-mono text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-slate-300 mb-1">عنوان محفظتك (USDT TRC-20 تبدأ بـ T):</label>
+                    <input
+                      type="text"
+                      value={currentUser.isAddressLocked ? currentUser.withdrawalAddress : wthWallet}
+                      disabled={currentUser.isAddressLocked}
+                      onChange={(e) => setWthWallet(e.target.value)}
+                      placeholder="T..."
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white font-mono text-sm disabled:opacity-75 disabled:cursor-not-allowed"
+                    />
+                    {currentUser.isAddressLocked && (
+                      <span className="text-xs text-amber-400 mt-1 block">🔒 المحفظة مقفلة مسبقاً لحمايتك. لتغييرها يرجى مراجعة الإدارة.</span>
+                    )}
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-base shadow-lg shadow-emerald-900/40 transition"
+                  >
+                    تأكيد طلب السحب
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* REFERRAL TAB */}
+            {currentUser && currentUser.role === 'user' && activeTab === 'referral' && (
+              <div className="max-w-3xl mx-auto space-y-6">
+                <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8">
+                  <h2 className="text-2xl font-black text-white mb-2">برنامج الإحالات وبناء الفريق</h2>
+                  <p className="text-slate-400 text-sm mb-6">شارك كود أو رابط إحالتك واكسب عمولات مباشرة على إيداعات المستثمرين الجدد المسجلين من خلالك.</p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800">
+                      <span className="text-xs text-slate-400 block mb-1">كود الدعوة الخاص بك:</span>
+                      <span className="font-mono text-xl font-black text-amber-400 select-all">{currentUser.referralCode}</span>
+                    </div>
+                    <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800">
+                      <span className="text-xs text-slate-400 block mb-1">عدد المستثمرين بفريقك:</span>
+                      <span className="font-mono text-xl font-black text-emerald-400">{currentUser.referredUsers?.length || 0} أعضاء</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex items-center justify-between gap-2">
+                    <span className="font-mono text-xs text-slate-300 break-all select-all">
+                      {window.location.origin + window.location.pathname + "?ref=" + currentUser.referralCode}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const link = window.location.origin + window.location.pathname + "?ref=" + currentUser.referralCode;
+                        navigator.clipboard.writeText(link);
+                        alert("تم نسخ رابط الدعوة الخاص بك!");
+                      }}
+                      className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl shrink-0 transition"
+                    >
+                      نسخ الرابط
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* PROFILE TAB */}
+            {currentUser && currentUser.role === 'user' && activeTab === 'profile' && (
+              <div className="max-w-2xl mx-auto bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8">
+                <h2 className="text-2xl font-black text-white mb-4">الملف الشخصي وإعدادات الأمان</h2>
+                <div className="space-y-4">
+                  <div className="flex justify-between py-3 border-b border-slate-800 text-sm">
+                    <span className="text-slate-400">الاسم الكامل:</span>
+                    <span className="font-bold text-white">{currentUser.name}</span>
+                  </div>
+                  <div className="flex justify-between py-3 border-b border-slate-800 text-sm">
+                    <span className="text-slate-400">اسم المستخدم:</span>
+                    <span className="font-bold text-emerald-400 font-mono">@{currentUser.username}</span>
+                  </div>
+                  <div className="flex justify-between py-3 border-b border-slate-800 text-sm">
+                    <span className="text-slate-400">البريد الإلكتروني:</span>
+                    <span className="font-bold text-white font-mono">{currentUser.email}</span>
+                  </div>
+                  <div className="flex justify-between py-3 border-b border-slate-800 text-sm">
+                    <span className="text-slate-400">تاريخ الانضمام:</span>
+                    <span className="text-slate-300 font-mono">{currentUser.joinedDate}</span>
+                  </div>
+                  <div className="flex justify-between py-3 border-b border-slate-800 text-sm">
+                    <span className="text-slate-400">محفظة السحب TRC-20:</span>
+                    <span className="font-mono text-amber-400 text-xs">{currentUser.withdrawalAddress || "لم تُسجل بعد"}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* MASTER ADMIN PORTAL */}
+            {currentUser && currentUser.role === 'admin' && activeTab === 'admin' && (
+              <div className="space-y-6">
+                {/* Admin Sub-tabs */}
+                <div className="flex overflow-x-auto gap-2 pb-2 border-b border-slate-800">
+                  {[
+                    { id: "stats", label: "📊 الإحصائيات العامة" },
+                    { id: "users", label: "👥 إدارة المستخدمين" },
+                    { id: "deposits", label: `📥 طلبات الإيداع (${stats.pendingDepositsCount})` },
+                    { id: "withdrawals", label: `📤 طلبات السحب (${stats.pendingWthCount})` },
+                    { id: "pnl", label: "📈 توزيع أرباح اليوم" },
+                    { id: "trash", label: `🗑️ سلة المحذوفات (${stats.trashCount})` }
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setAdminTab(tab.id)}
+                      className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition ${adminTab === tab.id ? 'bg-amber-500 text-slate-950 font-black' : 'bg-slate-900 text-slate-300 hover:bg-slate-800'}`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* TAB 1: GENERAL STATS */}
+                {adminTab === "stats" && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+                        <span className="text-xs text-slate-400 block mb-1">إجمالي رؤوس الأموال المجمعة</span>
+                        <span className="text-2xl font-black font-mono text-emerald-400">${stats.totalBalances.toFixed(2)}</span>
+                      </div>
+                      <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+                        <span className="text-xs text-slate-400 block mb-1">إجمالي محافظ الأرباح</span>
+                        <span className="text-2xl font-black font-mono text-teal-400">${stats.totalProfitWallets.toFixed(2)}</span>
+                      </div>
+                      <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+                        <span className="text-xs text-slate-400 block mb-1">المودعون النشطون</span>
+                        <span className="text-2xl font-black font-mono text-amber-400">{stats.activeDepositorsCount} مستثمر</span>
+                      </div>
+                      <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+                        <span className="text-xs text-slate-400 block mb-1">غير المودعين</span>
+                        <span className="text-2xl font-black font-mono text-slate-300">{stats.nonDepositorsCount} مستخدم</span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+                        <span className="text-xs text-slate-400 block mb-1">الإيداعات الحقيقية المؤكدة</span>
+                        <span className="text-xl font-black font-mono text-white">${stats.realDepositsTotal.toFixed(2)}</span>
+                      </div>
+                      <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+                        <span className="text-xs text-slate-400 block mb-1">إيداعات قيد المراجعة</span>
+                        <span className="text-xl font-black font-mono text-amber-400">${stats.pendingDepositsTotal.toFixed(2)}</span>
+                      </div>
+                      <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+                        <span className="text-xs text-slate-400 block mb-1">السحوبات المكتملة</span>
+                        <span className="text-xl font-black font-mono text-purple-400">${stats.completedWthTotal.toFixed(2)}</span>
+                      </div>
+                      <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+                        <span className="text-xs text-slate-400 block mb-1">سحوبات قيد التدقيق</span>
+                        <span className="text-xl font-black font-mono text-rose-400">${stats.pendingWthTotal.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 2: USERS MANAGEMENT */}
+                {adminTab === "users" && (
+                  <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 overflow-x-auto custom-scrollbar">
+                    <h3 className="text-lg font-black text-white mb-4">قائمة جميع المستثمرين والمستخدمين</h3>
+                    <table className="w-full text-right text-sm">
+                      <thead>
+                        <tr className="border-b border-slate-800 text-slate-400 text-xs">
+                          <th className="pb-3">المستخدم</th>
+                          <th className="pb-3">البريد</th>
+                          <th className="pb-3">رأس المال</th>
+                          <th className="pb-3">صندوق الأرباح</th>
+                          <th className="pb-3">كود الإحالة</th>
+                          <th className="pb-3">الحالة</th>
+                          <th className="pb-3 text-left">إجراءات</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800/60">
+                        {users.filter(u => u.role === "user" && !u.isDeleted).map(u => (
+                          <tr key={u.id} className="hover:bg-slate-950/40">
+                            <td className="py-3 font-bold text-white">
+                              {u.name}
+                              <span className="block text-xs text-slate-400 font-mono">@{u.username}</span>
+                            </td>
+                            <td className="py-3 text-slate-300 font-mono text-xs">{u.email}</td>
+                            <td className="py-3 font-mono font-bold text-emerald-400">${u.balance.toFixed(2)}</td>
+                            <td className="py-3 font-mono font-bold text-teal-400">${u.profitWallet.toFixed(2)}</td>
+                            <td className="py-3 font-mono text-amber-400 text-xs">{u.referralCode}</td>
+                            <td className="py-3">
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${u.status === 'active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}>
+                                {u.status === 'active' ? 'نشط' : 'محظور'}
+                              </span>
+                            </td>
+                            <td className="py-3 text-left">
+                              <div className="flex items-center justify-end gap-2">
+                                <button
+                                  onClick={() => sendBonus(u.id)}
+                                  className="text-xs bg-emerald-500/20 hover:bg-emerald-500 hover:text-slate-950 text-emerald-400 font-bold px-2 py-1 rounded"
+                                >
+                                  + مكافأة
+                                </button>
+                                <button
+                                  onClick={() => toggleBanUser(u.id)}
+                                  className={`text-xs px-2 py-1 rounded font-bold ${u.status === 'active' ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500 hover:text-slate-950' : 'bg-emerald-500/20 text-emerald-400'}`}
+                                >
+                                  {u.status === 'active' ? 'حظر' : 'إلغاء الحظر'}
+                                </button>
+                                <button
+                                  onClick={() => moveToTrash(u.id)}
+                                  className="text-xs bg-rose-500/20 hover:bg-rose-500 text-rose-400 hover:text-white font-bold px-2 py-1 rounded"
+                                >
+                                  حذف
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* TAB 3: DEPOSITS REQUESTS */}
+                {adminTab === "deposits" && (
+                  <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6">
+                    <h3 className="text-lg font-black text-white mb-4">طلبات الإيداع الواردة</h3>
+                    <div className="space-y-3">
+                      {transactions.filter(t => t.type === 'deposit').map(tx => (
+                        <div key={tx.id} className="p-4 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-bold text-white">{tx.userName}</span>
+                              <span className="font-mono text-emerald-400 font-black text-lg">${tx.amount}</span>
+                              <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded font-mono">{tx.method}</span>
+                            </div>
+                            <p className="text-xs text-slate-400">{tx.note}</p>
+                            <span className="text-xs text-slate-500 font-mono mt-1 block">{tx.date} {tx.time} | معرف: {tx.telegramUsername || "غير متوفر"}</span>
+                          </div>
+                          <div>
+                            {tx.status === 'pending' ? (
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => approveDeposit(tx.id)}
+                                  className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl"
+                                >
+                                  قبول وإيداع
+                                </button>
+                                <button
+                                  onClick={() => rejectDeposit(tx.id)}
+                                  className="px-4 py-2 bg-rose-500/20 hover:bg-rose-500 text-rose-400 hover:text-white font-bold text-xs rounded-xl"
+                                >
+                                  رفض
+                                </button>
+                              </div>
+                            ) : (
+                              <span className={`text-xs px-3 py-1 rounded-full font-bold ${tx.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}>
+                                {tx.status === 'approved' ? 'تمت الموافقة' : 'مرفوض'}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                      {transactions.filter(t => t.type === 'deposit').length === 0 && (
+                        <p className="text-center text-slate-500 py-6 text-sm">لا توجد طلبات إيداع حالياً</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 4: WITHDRAWALS REQUESTS */}
+                {adminTab === "withdrawals" && (
+                  <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6">
+                    <h3 className="text-lg font-black text-white mb-4">طلبات السحب الواردة</h3>
+                    <div className="space-y-3">
+                      {transactions.filter(t => t.type === 'withdrawal').map(tx => (
+                        <div key={tx.id} className="p-4 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-bold text-white">{tx.userName}</span>
+                              <span className="font-mono text-purple-400 font-black text-lg">${tx.amount}</span>
+                            </div>
+                            <p className="text-xs text-amber-400 font-mono break-all mb-1">المحفظة: {tx.walletAddress}</p>
+                            <span className="text-xs text-slate-500 font-mono block">{tx.date} {tx.time} | تليجرام: {tx.telegramUsername || "لا يوجد"}</span>
+                          </div>
+                          <div>
+                            {tx.status === 'pending' ? (
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => approveWithdrawal(tx.id)}
+                                  className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl"
+                                >
+                                  اعتماد التحويل
+                                </button>
+                                <button
+                                  onClick={() => rejectWithdrawal(tx.id)}
+                                  className="px-4 py-2 bg-rose-500/20 hover:bg-rose-500 text-rose-400 hover:text-white font-bold text-xs rounded-xl"
+                                >
+                                  رفض
+                                </button>
+                              </div>
+                            ) : (
+                              <span className={`text-xs px-3 py-1 rounded-full font-bold ${tx.status === 'completed' ? 'bg-purple-500/20 text-purple-400' : 'bg-rose-500/20 text-rose-400'}`}>
+                                {tx.status === 'completed' ? 'تم الصرف بنجاح' : 'مرفوض'}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                      {transactions.filter(t => t.type === 'withdrawal').length === 0 && (
+                        <p className="text-center text-slate-500 py-6 text-sm">لا توجد طلبات سحب حالياً</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 5: DAILY PNL DISTRIBUTION */}
+                {adminTab === "pnl" && (
+                  <div className="max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8">
+                    <h3 className="text-xl font-black text-white mb-2">توزيع واعتماد أرباح صفقات اليوم</h3>
+                    <p className="text-slate-400 text-sm mb-6">اكتب إجمالي أرباح الصفقات بالدولار ليتم حساب النسبة المئوية وتوزيعها على جميع المستثمرين بالتساوي.</p>
+                    <form onSubmit={handlePublishPnL} className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-bold text-slate-300 mb-1">صافي أرباح/خسائر صفقات اليوم ($):</label>
+                        <input
+                          type="number"
+                          value={adminDollarPnL}
+                          onChange={(e) => setAdminDollarPnL(Number(e.target.value))}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white font-mono text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-slate-300 mb-1">ملخص الصفقات الفنية:</label>
+                        <textarea
+                          rows={3}
+                          value={adminPnLSummary}
+                          onChange={(e) => setAdminPnLSummary(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        className="w-full py-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-base shadow-lg shadow-amber-900/40 transition"
+                      >
+                        نشر وتوزيع النتيجة على جميع المشتركين
+                      </button>
+                    </form>
+                  </div>
+                )}
+
+                {/* TAB 6: TRASH CAN */}
+                {adminTab === "trash" && (
+                  <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6">
+                    <h3 className="text-lg font-black text-white mb-4">سلة المحذوفات</h3>
+                    <div className="space-y-3">
+                      {users.filter(u => u.isDeleted).map(u => (
+                        <div key={u.id} className="p-4 rounded-2xl bg-slate-950 border border-slate-800 flex justify-between items-center">
+                          <div>
+                            <span className="font-bold text-white block">{u.name} (@{u.username})</span>
+                            <span className="text-xs text-slate-400 font-mono">{u.email} | رصيد سابق: ${u.balance}</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => restoreFromTrash(u.id)}
+                              className="px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500 hover:text-slate-950 text-emerald-400 font-bold text-xs rounded-lg"
+                            >
+                              استعادة الحساب
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      {users.filter(u => u.isDeleted).length === 0 && (
+                        <p className="text-center text-slate-500 py-6 text-sm">سلة المحذوفات فارغة تماماً</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </main>
+
+          {/* Auth Modal (Login & Register) */}
+          {showAuthModal && (
+            <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-md w-full relative shadow-2xl">
+                <button
+                  onClick={() => setShowAuthModal(false)}
+                  className="absolute top-5 left-5 text-slate-400 hover:text-white text-lg font-bold"
+                >
+                  ✕
+                </button>
+
+                <div className="text-center mb-6">
+                  <h3 className="text-2xl font-black text-white">
+                    {authMode === "login" ? "تسجيل الدخول لمنصة استفيد" : "إنشاء حساب استثماري جديد"}
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-1">تداولك الذكي.. واستثمارك الآمن</p>
+                </div>
+
+                {authError && (
+                  <div className="p-3 mb-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold text-center">
+                    {authError}
+                  </div>
+                )}
+
+                {authMode === "login" ? (
+                  <form onSubmit={handleLogin} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">اسم المستخدم أو البريد:</label>
+                      <input
+                        type="text"
+                        required
+                        value={loginId}
+                        onChange={(e) => setLoginId(e.target.value)}
+                        placeholder="vitamin11 أو البريد"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">كلمة المرور:</label>
+                      <input
+                        type="password"
+                        required
+                        value={loginPass}
+                        onChange={(e) => setLoginPass(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      className="w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm shadow-lg shadow-emerald-900/30 transition"
+                    >
+                      دخول
+                    </button>
+                    <p className="text-center text-xs text-slate-400 pt-2">
+                      ليس لديك حساب؟{" "}
+                      <button
+                        type="button"
+                        onClick={() => { setAuthMode("register"); setAuthError(""); }}
+                        className="text-emerald-400 font-bold hover:underline"
+                      >
+                        سجل الآن مجاناً
+                      </button>
+                    </p>
+                  </form>
+                ) : (
+                  <form onSubmit={handleRegister} className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">الاسم الكامل:</label>
+                      <input
+                        type="text"
+                        required
+                        value={regName}
+                        onChange={(e) => setRegName(e.target.value)}
+                        placeholder="محمد علي"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">اسم المستخدم (بالإنجليزي):</label>
+                      <input
+                        type="text"
+                        required
+                        value={regUsername}
+                        onChange={(e) => setRegUsername(e.target.value)}
+                        placeholder="mohammed24"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">البريد الإلكتروني:</label>
+                      <input
+                        type="email"
+                        required
+                        value={regEmail}
+                        onChange={(e) => setRegEmail(e.target.value)}
+                        placeholder="user@gmail.com"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">كلمة المرور:</label>
+                      <input
+                        type="password"
+                        required
+                        value={regPass}
+                        onChange={(e) => setRegPass(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">معرف تليجرام (اختياري):</label>
+                      <input
+                        type="text"
+                        value={regTel}
+                        onChange={(e) => setRegTel(e.target.value)}
+                        placeholder="@username"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">رمز الدعوة / الإحالة (إن وجد):</label>
+                      <input
+                        type="text"
+                        value={regRef}
+                        onChange={(e) => setRegRef(e.target.value)}
+                        placeholder="ASTA1234"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-amber-400 text-sm font-mono font-bold"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm shadow-lg shadow-emerald-900/30 transition mt-2"
+                    >
+                      إنشاء الحساب والبدء
+                    </button>
+                    <p className="text-center text-xs text-slate-400 pt-1">
+                      لديك حساب بالفعل؟{" "}
+                      <button
+                        type="button"
+                        onClick={() => { setAuthMode("login"); setAuthError(""); }}
+                        className="text-emerald-400 font-bold hover:underline"
+                      >
+                        تسجيل الدخول
+                      </button>
+                    </p>
+                  </form>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Footer */}
+          <footer className="border-t border-slate-800/80 bg-slate-950 py-6 text-center text-xs text-slate-500">
+            <p>© 2026 استفيد (ASTAFED) - جميع الحقوق محفوظة لأسواق التداول والتحليل المالي الموحد.</p>
+          </footer>
+        </div>
+      );
+    }
+
+    // Render the App
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<AstafedStandaloneApp />);
+  </script>
+</body>
+</html>
